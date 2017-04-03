@@ -1,0 +1,25 @@
+# Paths are relative to config file location
+relative-paths: yes
+
+# performance settings
+beam-size: 5
+normalize: yes
+cpu-threads: 4
+
+# scorer configuration
+scorers:
+  F0:
+    path: model_new.npz
+    type: Nematus
+
+# scorer weights
+weights:
+  F0: 1.0
+
+# vocabularies
+source-vocab: train_nematus.en.bped.json
+target-vocab: train_nematus.et.bped.json
+
+# bpe
+bpe: bpe_codes_all
+debpe: true
