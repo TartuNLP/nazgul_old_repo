@@ -1,2 +1,2 @@
-# Sauron
-the translation service framework
+# Nazgul
+Neural translation service
