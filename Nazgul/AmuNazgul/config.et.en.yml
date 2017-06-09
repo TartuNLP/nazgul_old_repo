@@ -1,0 +1,29 @@
+# Paths are relative to config file location
+relative-paths: yes
+
+# performance settings
+beam-size: 5
+normalize: yes
+cpu-threads: 32
+gpu-threads: 0
+
+# scorer configuration
+scorers:
+  F0:
+    path: sander/model.npz
+    type: Nematus
+
+# scorer weights
+weights:
+  F0: 1.0
+
+# vocabularies
+source-vocab: sander/train.et.json
+target-vocab: sander/train.en.json
+
+# bpe
+bpe: sander/codes
+no-debpe: yes
+
+# alignment 
+return-alignment: yes
