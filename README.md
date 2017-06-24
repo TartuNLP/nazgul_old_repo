@@ -69,6 +69,7 @@ An example cofiguration (for more info see https://github.com/barvins/amunmt):
     # attention info
     return-alignment: yes
  
+## Input and output while serving
     
 
 #TODO LIST:
