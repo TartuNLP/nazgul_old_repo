@@ -4,11 +4,19 @@ Neural translation service built on top of Marian (formerly known as AmuNMT). Ma
 We use the following AmuNMT clone to produce attention info: https://github.com/barvins/amunmt
 
 #TODO LIST:
+
 Add link to Sauron 
+
 Explain where to find amunmt deployment info
+
 Add guide to make the python bindings stuff (not in amunmt guide at the moment i think)
+
 Add example config file that we use
+
 Explain different flags and how to use them (tokenize, truecase, etc.)
+
 Add example input commands and (maybe?) example output
+
 Explain what input data to use
+
 Explain how the service works?
