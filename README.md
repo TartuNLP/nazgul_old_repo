@@ -5,11 +5,11 @@ We use the following AmuNMT clone to produce attention info: https://github.com/
 
 ## Dependencies
 
- * NLTK
+NLTK
  
     pip install nltk
 
- * translating needs following NLTK modules: perluniprops, punkt
+translating needs following NLTK modules: perluniprops, punkt
    
     $ python
     >>> import nltk
