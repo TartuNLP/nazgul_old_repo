@@ -1,8 +1,6 @@
 # Nazgul
 Nazgul is a neural translation service built on top of Marian (formerly known as AmuNMT). Marcin Junczys-Dowmunt, Tomasz Dwojak, Hieu Hoang (2016). Is Neural Machine Translation Ready for Deployment? A Case Study on 30 Translation Directions (https://arxiv.org/abs/1610.01108). We use the following AmuNMT clone to produce attention info: https://github.com/barvins/amunmt
 
-The aim of Nazgul is ...
-
 Nazgul can be used separately, but it pairs up nicely with Sauron: https://github.com/TartuNLP/sauron
 
 ## Dependencies
@@ -89,7 +87,3 @@ Output is in json format. Following serves as a sample of output format that is 
 
 ## Testing
 For testing a simple python testing script is in the same folder with server file (test_nazgul_json.py).
-
-#TODO LIST:
-
-Explain how the service works?
