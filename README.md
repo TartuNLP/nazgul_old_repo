@@ -3,13 +3,19 @@ Neural translation service built on top of Marian (formerly known as AmuNMT). Ma
 
 We use the following AmuNMT clone to produce attention info: https://github.com/barvins/amunmt
 
+## Dependencies
+
+ * NLTK and stuff, wrtie commands here
+
+## How to run
+ * Download and compile AmuNMT according to instructions from https://github.com/barvins/amunmt
+ * To run the nazgul server (inside build directory):
+ 
+    make python
+
 #TODO LIST:
 
 Add link to Sauron 
-
-Explain where to find amunmt deployment info
-
-Add guide to make the python bindings stuff (not in amunmt guide at the moment i think)
 
 Add example config file that we use
 
