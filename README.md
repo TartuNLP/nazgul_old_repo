@@ -26,7 +26,7 @@ Inside the build directory:
     
 To run the nazgul server:
     
-    python amunmt_nazgul.py -c config.yml -t True -e truecase.mdl -s 12345
+    python nazgul_json.py -c config.yml -t True -e truecase.mdl -s 12345
     
 Flags:
  
@@ -70,13 +70,27 @@ An example cofiguration (for more info see https://github.com/barvins/amunmt):
     return-alignment: yes
  
 ## Input and output while serving
-    
+
+### Input
+Desired input depends on with which flags and configuration file options the service is started.
+When all options are enabled, the input can be just regular text, because service sentence- and word-tokenizes, splits into bpe, truecases and after translation turns the output into proper text.
+
+### Output
+Output is in json format. Following serves as a sample of output format that is sent to client.
+
+    msg = json.dumps({'raw_trans': trans,
+                      'raw_input': raw_in,
+                      'weights': weights,
+                      'final_trans': detokenized.replace('@@ ', '').encode('utf-8').strip()
+                      }, encoding='utf-8')
+    c.send(msg)
+
+## Testing
+For testing a simple python testing script is in the same folder with server file (test_nazgul_json.py).
 
 #TODO LIST:
 
 Add link to Sauron 
-
-Add example input commands and (maybe?) example output
 
 Explain what input data to use
 
