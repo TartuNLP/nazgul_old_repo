@@ -37,6 +37,7 @@ def listen():
             t.start()
             t.join()
 
+
 def main(name):
     code = name.split(';')[0]
     if code == 'u':
@@ -45,24 +46,27 @@ def main(name):
         print 'upload'
         if respo == 'okay':
             print "Passed here"
-            s.send(name.split(';')[1])
-        
-        #while respo != 'Done':
-        #    try:
-        #        print "Next Sentence"
-        #        print respo
-        #        respo = s.recv(1024)
-        #    except KeyboardInterrupt:
-        #        print "Key interrupt"
+            msg = json.dumps({
+                             "src": name.split(';')[1],
+                             "tok": True,
+                             "tc": True,
+                             "alignweights": True,
+                             }, encoding='utf-8')
+            s.send(msg)
+
         try:
             respo = s.recv(1024)
         except KeyboardInterrupt:
             print "Ended"
+        print respo
         enc = json.loads(respo, encoding='utf-8')
         print "This is final translation:"
         print enc['final_trans']
-        print "This is the weightstuff"
-        print enc['weights'][0]
+        try:
+            print "This is the weightstuff"
+            print enc['weights'][0]
+        except KeyError:
+            pass
         print "This is the preprocessed input"
         print enc['raw_input'][0]
         print "This is the un-processed output"
