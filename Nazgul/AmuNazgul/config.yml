@@ -5,11 +5,12 @@ relative-paths: yes
 beam-size: 5
 normalize: yes
 cpu-threads: 4
+gpu-threads: 0
 
 # scorer configuration
 scorers:
   F0:
-    path: model_new.npz
+    path: model_noopt.npz
     type: Nematus
 
 # scorer weights
@@ -22,4 +23,6 @@ target-vocab: train_nematus.et.bped.json
 
 # bpe
 bpe: bpe_codes_all
-debpe: true
+no-debpe: yes
+
+return-alignment: yes
