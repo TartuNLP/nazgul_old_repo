@@ -19,10 +19,6 @@ translating needs following NLTK modules: perluniprops, punkt
 
 ## How to run
 Download and compile AmuNMT according to instructions from https://github.com/barvins/amunmt
-
-Inside the build directory:
- 
-    make python
     
 To run the nazgul server:
     
