@@ -9,25 +9,25 @@ NLTK
  
     pip install nltk
 
-translating needs following NLTK modules: perluniprops, punkt
+translating needs following NLTK modules: perluniprops, punkt, nonbreaking_prefixes
    
     $ python
     >>> import nltk
     >>> nltk.download()
     Downloader> d perluniprops
     Downloader> d punkt
+    Downloader> d nonbreaking_prefixes
 
 ## How to run
 Download and compile AmuNMT according to instructions from https://github.com/barvins/amunmt
     
 To run the nazgul server:
     
-    python nazgul_json.py -c config.yml -t True -e truecase.mdl -s 12345
+    python nazgul_json.py -c config.yml -e truecase.mdl -s 12345
     
 Flags:
  
     -c -- config file to be used for AmuNMT run
-    -t -- whether to use nltk.tokenizer or not (default: False)
     -e -- truecasing model file
     -s -- socket on which the server will listen (default: 12345)
 
@@ -62,7 +62,7 @@ An example cofiguration (for more info see https://github.com/barvins/amunmt):
     bpe: codes.bpe
     no-debpe: yes
     
-    # attention info
+    # To produce attention info
     return-alignment: yes
  
 ## Input and output while serving
