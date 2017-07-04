@@ -58,7 +58,7 @@ An example cofiguration (for more info see https://github.com/barvins/amunmt):
     source-vocab: vocab.source.bped.json
     target-vocab: vocab.target.bped.json
 
-    # bpe
+    # bpe, disable de-bpe
     bpe: codes.bpe
     no-debpe: yes
     
