@@ -23,13 +23,14 @@ Download and compile AmuNMT according to instructions from https://github.com/ba
     
 To run the nazgul server:
     
-    python nazgul_json.py -c config.yml -e truecase.mdl -s 12345
+    python nazgul_json.py -c config.yml -e truecase.mdl -s 12345 (-f fasttext.mdl -- when using unsupervised nazgul)
     
 Flags:
  
     -c -- config file to be used for AmuNMT run
     -e -- truecasing model file
     -s -- socket on which the server will listen (default: 12345)
+    -f -- FastText model for input clustering -- only needed for unsupervised nazgul
 
 ## Configuration file 
 
