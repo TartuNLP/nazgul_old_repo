@@ -1,0 +1,29 @@
+# Paths are relative to config file location
+relative-paths: yes
+
+# performance settings
+beam-size: 8
+normalize: yes
+cpu-threads: 8
+gpu-threads: 0
+
+# scorer configuration
+scorers:
+  F0:
+    path: models/model.enet.u16.npz
+    type: Nematus
+
+# scorer weights
+weights:
+  F0: 1.0
+
+# vocabularies
+source-vocab: models/pref.train.bped.en16.json
+target-vocab: models/train.h.bped.et.json
+
+# bpe
+# bpe: ../../models/et-en/bpe_prefix.mdl
+# no-debpe: yes
+
+# alignment 
+return-alignment: yes
