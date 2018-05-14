@@ -14,15 +14,17 @@ import json
 import utils
 import fastText
 import subprocess
+import math
+from collections import defaultdict
+from nltk.tokenize import moses, sent_tokenize
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../build/src')
 import libamunmt as nmt
-from collections import defaultdict
-from nltk.tokenize import moses, sent_tokenize
 
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 LOG = logging.getLogger()
+THRESHOLD = -4.5
 
 
 def truecasing(truecaser, word):
@@ -60,7 +62,7 @@ def pre_processing(tokenizer, truecaser, info, ft_mdl, bpe):
                 for i in range(len(source_file_t[j])):
                     source_file_t[j][i] = str((truecasing(truecaser, source_file_t[j][i].split(' ')[0]).decode(
                         'utf-8') + " " + (' '.join(source_file_t[j][i].split(' ')[1:]).decode('utf-8'))).encode('utf-8'))
-    
+
     #BPE
     if info['tc']:
         for j in range(len(source_file_t)):
@@ -70,7 +72,7 @@ def pre_processing(tokenizer, truecaser, info, ft_mdl, bpe):
                     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
                     (out, err) = proc.communicate()
                     source_file_t[j][i] = out[:-1]
-                    
+
     # FASTTEXT
     for j in range(len(source_file_t)):
         if j % 2 == 0:
@@ -82,8 +84,18 @@ def pre_processing(tokenizer, truecaser, info, ft_mdl, bpe):
 
 
 def parallelized_main(c, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
-    # print tokenize
-    gotthis = c.recv(4096)
+    gotthis = c.recv(1024)
+    LOG.debug("Got message: " + gotthis)
+    # Change the input message size dynamically, useful for handling long inputs
+    # Size control code "msize:", if not prepended, then assumes size within 1024
+    if gotthis.startswith("msize:"):
+        LOG.debug("It's a multipart message")
+        size = int(gotthis[6:])
+        c.send('OK')
+        gotthis = c.recv(size)
+        LOG.debug("Got next message part: " + gotthis)
+
+    # RECEIVE JSON MESSAGE
     info = json.loads(gotthis, encoding='utf-8')
     source_file_t = pre_processing(tokenizer, truecaser, info, ft_mdl, bpe)
     # print "Finished pre-processing"
@@ -96,22 +108,20 @@ def parallelized_main(c, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
             for j in range(len(source_file_t)):
                 if j % 2 == 0:
                     for i in source_file_t[j]:
-                        #print nmt.translate([i])[0].split(' |||')
-                        #bpe_input = utils.get_bpe_sent(i)
-                        
-                        #LOG.debug(bpe_input)
                         translated_sent = nmt.translate([i])
-                        #is_good = utils.is_good_sentence(translated_sent[0], -5)
-                        #LOG.debug(is_good)
-                        temp = translated_sent[0].split(' |||')
-                        # temp = nmt.translate([i])[0].split(' |||')# hacked for marian[:-4].split(' ||| ')
-                        LOG.debug(translated_sent)
-                        #for k in nmt.translate([i])[0][:-4].split(' ||| '):
-                        #    print k
-                        trans += [temp[0]]# hacekd for marian [temp[1]]
-                        weights += ['0']
-                        # weights += [temp[1]]# hacked atm [temp[2]]
-                        raw_in += [i]# hacked for marian [temp[0]]
+                        if translated_sent[0] == ' |||':
+                            LOG.debug("empty translation")
+                            trans.append('Sentence is not translated')
+                        else:
+                            qe_total = utils.is_good_sentence(translated_sent[0], THRESHOLD)
+                            LOG.debug("Estimation: " + str(qe_total))
+                            qe_total = math.exp(qe_total)
+                            LOG.debug("Estimation: " + str(qe_total))
+                            temp = translated_sent[0].split(' |||')
+                            LOG.debug(translated_sent)
+                            trans += [temp[0]]# hacekd for marian [temp[1]]
+                            weights += ['0']
+                            raw_in += [i]# hacked for marian [temp[0]]
                 else:
                     trans[-1] += str(source_file_t[j])
             if info['tok']:
@@ -131,31 +141,36 @@ def parallelized_main(c, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
                     detokenized_par = i.decode('utf-8') + " "
                     detokenized += detokenized_par[0].upper() + detokenized_par[1:]
             print detokenized.replace('@@ ', '').encode('utf-8')
-            if info['alignweights']:
-                msg = json.dumps({'raw_trans': trans,
-                                  'raw_input': raw_in,
-                                  'weights': weights,
-                                  'final_trans': detokenized.replace('@@ ', '').encode('utf-8').strip()
-                                  }, encoding='utf-8')
-            else:
-                msg = json.dumps({'raw_trans': trans,
-                                  'raw_input': source_file_t[0],
-                                  'final_trans': detokenized.replace('@@ ', '').encode('utf-8').strip()
-                                  }, encoding='utf-8')
+            ret = {'raw_trans': trans,
+                   'raw_input': raw_in,
+                   'final_trans': detokenized.replace('@@ ', '').encode('utf-8').strip()}
+            if info.get('align_weights'):
+                ret['weights'] = weights
+            if info.get('quality_estimation'):
+                ret['estimation'] = unicode(qe_total)
+            msg = json.dumps(ret, encoding='utf-8')
+            size = sys.getsizeof(msg)
+            if size >= 1024:
+                LOG.debug("Size bigger than 1024, initialising message size control protocol.")
+                c.send('msize:' + str(sys.getsizeof(msg)))
+                gotthis = c.recv(1024)
+                LOG.debug(gotthis)
             c.send(msg)
-            # print(msg)
+            LOG.debug("Sent")
             LOG.debug(msg)
             gotthis = c.recv(4096)
+            LOG.debug("Got response")
+            print(gotthis)
             try:
                 info = json.loads(gotthis, encoding='utf-8')
-                source_file_t = pre_processing(tokenizer, truecaser, info)
+                source_file_t = pre_processing(tokenizer, truecaser, info, ft_mdl, bpe)
             except ValueError:
                 break
         c.close()
         sys.stderr.write('Done\n')
     except IndexError:
         c.close()
-        sys.stderr.write('Bad connecntion made\n')
+        sys.stderr.write('Bad connection made\n')
 
 
 def listen(c, addr, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
@@ -171,7 +186,7 @@ def listen(c, addr, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
                 break
             print fname
             try:
-                c.send("okay")
+                c.send("OK")
                 t = threading.Thread(target=parallelized_main,
                                      args=(c, tokenizer, detokenizer, truecaser, ft_mdl, bpe))
                 t.start()
@@ -180,7 +195,7 @@ def listen(c, addr, tokenizer, detokenizer, truecaser, ft_mdl, bpe):
                 c.close()
                 break
         except KeyboardInterrupt as e:
-            LOG.debug('Crtrl+C issued ...')
+            LOG.debug('Crtl+C issued ...')
             LOG.info('Terminating server ...')
             try:
                 c.shutdown(socket.SHUT_RDWR)
@@ -202,7 +217,7 @@ def main(truecase, sock, fasttext, bpe):
     truecaser = defaultdict(str)
     for line in tc_init:
         truecaser[line.split(' ')[0].lower()] = line.split(' ')[0]
-        
+
     ft_mdl = fastText.load_model(fasttext)
 
     tokenizer = moses.MosesTokenizer()
@@ -230,9 +245,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ## MODEL LOADED HERE
-    # nmt.init("-c {}".format('config.et.en.yml'))
-    print("here")
     nmt.init("-c {}".format(args.config))
-    print("loaded")
     main(args.truecase, args.socket, args.fasttext, args.bpe)
-    # main(True, 'et-truecase.mdl', 12348)
